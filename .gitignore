@@ -1,0 +1,16 @@
+# Generated projects and build outputs
+**/bin/
+**/obj/
+addon-modules/**/*.csproj
+*.user
+*.suo
+.vs/
+
+# Temporary development backups
+*.before-warning-fix
+*.before-localization
+*.working-localization
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
