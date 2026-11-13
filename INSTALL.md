@@ -43,24 +43,34 @@ The packaged `Wifi.ini` is provided as a reference and for alternative configura
 
 Open the ROBUST configuration file used to start your grid, typically `Robust.HG.ini` or `Robust.ini`.
 
-Locate the following existing sections and set their `StorageProvider` values:
+Locate the existing `[GridService]`, `[UserAccountService]` and `[GridUserService]` sections. In each section, **add** this setting:
+
+```ini
+    StorageProvider = "Diva.Data.MySQL.dll"
+```
+
+If a section already contains an active `StorageProvider` setting, change its value instead of adding a duplicate.
+
+For example, a standard Nessie configuration may contain:
+
+```ini
+[GridService]
+    LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
+```
+
+After the addition, that part of the section should read:
 
 ```ini
 [GridService]
     StorageProvider = "Diva.Data.MySQL.dll"
-
-[UserAccountService]
-    StorageProvider = "Diva.Data.MySQL.dll"
-
-[GridUserService]
-    StorageProvider = "Diva.Data.MySQL.dll"
+    LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 ```
 
-**Edit the existing sections rather than creating duplicate sections.**
+Make the same `StorageProvider` addition under `[UserAccountService]` and `[GridUserService]`.
 
-Retain all other settings, including existing database connection strings and service configuration.
+**Do not replace entire configuration sections or create duplicate section headings.** Keep all existing entries, especially `LocalServiceModule`, database connection strings, region settings and Hypergrid settings. `LocalServiceModule` selects the service implementation; `StorageProvider` selects its database storage provider.
 
-These settings match the configuration used during development testing.
+These three additions match the configuration used during development testing.
 
 ### 5. Configure WiFi
 
