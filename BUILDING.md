@@ -87,10 +87,13 @@ Back up the configuration first. In the active `Robust.HG.ini`, use the followin
     AdminFirst = "Admin"
     AdminLast = "Admin"
     AccountConfirmationRequired = false
+    UserDocsPath = "."
     ServePath_BinData = "data, /bin/data"
 ```
 
 The URLs are **illustrative**, not tested endpoints; use the scheme, hostname, and ports that match your actual ROBUST configuration. Do not duplicate INI sections if they already exist; update the existing sections. The example's account-confirmation setting mirrors the test setup, not a security recommendation. Review registration and administrative settings before exposing the service publicly.
+
+`UserDocsPath = "."` is recommended when launching ROBUST from its installation directory: editable `WifiPages` resources remain inside that working directory, rather than being written to its parent (the original fallback `..`). The location is relative to the process working directory; users may choose `..` or an explicit path instead. The final clean-copy installation succeeded with this setting.
 
 Do **not** add `WifiServiceConnector` under `[ServiceList]`. The tested setup uses Mono.Addins discovery of the enabled WiFi service; an explicit native service-list entry failed in testing.
 
@@ -104,4 +107,4 @@ Do **not** add `WifiServiceConnector` under `[ServiceList]`. The tested setup us
 
 ## Clean-build release gate
 
-Before tagging a public release, rebuild from the **matching clean OpenSimulator source worktree** plus the current six published Diva modules. Verify the seven DLLs, five satellite assemblies, and other runtime files; then repeat the ROBUST startup and functional checks against a fresh copy of the deployment. Record the actual results before publishing; the new sidebar attribution template requires a rebuilt `Diva.Wifi.dll`.
+The matching Nessie source worktree was rebuilt successfully (seven Diva projects, zero errors; three existing warnings in upstream OpenSimulator code). A 17-file binary ZIP was assembled and installed on a fresh ROBUST copy, using documented database-provider and `[WifiService]` settings. Startup, page extraction and UI availability passed. `UserDocsPath = "."` was independently tested and kept editable pages inside the ROBUST working directory. Prior comprehensive feature testing covered SMTP recovery, avatar creation, account/group management, REST console commands and Hypergrid link creation/deletion. Before publication, ensure the final ZIP includes the current documentation and sample `Wifi.ini`.
