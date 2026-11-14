@@ -1,4 +1,4 @@
-A personal note from the author (Mr-Blinky):
+# A Personal Note from the Author (Mr-Blinky)
 
 I have to be honest, and in full disclosure, I did not write a single line of code for this port, ChatGPT did all of it. That said, the whole project was not just ChatGPT's work. I spent around 14 hours over 3 days holding ChatGPT's reins and steering it in the right direction. All console work, connands, ini file edits and so on was all done by myself, taking great care to ensure the code was proper and nothing untoward. Extensive testing was done at each and every part of the project. Several test grids and database dumps were taken over the course. Installation and all of the testing were always done by myself. This wasn't so much as a vibe coding project as much as it was a partnership between a grid admin (and lousy programmer) and a good programmer. ChatGPT cooked and sliced the meat, I prepared the bread, butter, seasoning and salad, and put it all together.
 
