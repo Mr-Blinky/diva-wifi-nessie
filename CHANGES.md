@@ -1,6 +1,6 @@
-# Changes: Diva WiFi Nessie v0.1.0 candidate
+# Changes: Diva WiFi Nessie v0.9.0 RC1
 
-This is an **unofficial compatibility port**, not a rewrite of Diva WiFi. The clean source staging tree retains the original 398 source/resource files; The original compatibility changes are documented below; subsequent packaging and UI attribution improvements are noted separately. No original files were removed. Generated `.csproj` files are excluded from the release source.
+This is an **unofficial compatibility port**, not a rewrite of Diva WiFi. The original compatibility changes, packaging refinements and attribution improvements are documented below. No original upstream source files were intentionally removed. Generated `.csproj` files are excluded from the release source.
 
 ## Build-system compatibility
 
@@ -26,6 +26,7 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 - `21Wifi/Wifi.ini`: documented generic outgoing SMTP settings and provided placeholder values instead of Gmail sample credentials.
 - `21Wifi/WifiPages/links.html`: added a link to this unofficial Nessie port beneath the original Diva Distro link, retaining original credits and navigation.
 - `INSTALL.md` and `README.md`: updated for the binary installation procedure, email settings and verified functional tests.
+- `UserDocsPath = "."` documented and included in the sample `Wifi.ini` to keep editable WiFi pages within the ROBUST working directory; the original fallback `..` remains available.
 
 ## Build and runtime evidence
 
@@ -40,8 +41,8 @@ The earlier DivaData invalid-cast warnings did not recur after all three provide
 - **MySQL/MariaDB supported; SQLite unsupported and untested.** The generated SQLite project is not evidence of support.
 - Linux and other OpenSimulator commits untested.
 - Localized page behavior not separately verified.
-- The updated binaries containing the new sidebar attribution link still require rebuilding and a final installation check.
+- Final clean-copy ROBUST test passed with the updated binary package, including extracted WiFi web resources. The recommended `UserDocsPath = "."` layout was also verified.
 
 ## Future possibilities
 
-SQLite compatibility work and a separate unofficial Diva D3 Nessie standalone distribution are under consideration, not part of v0.1.0.
+SQLite compatibility work and a separate unofficial Diva D3 Nessie standalone distribution are under consideration, not part of v0.9.0 RC1.
