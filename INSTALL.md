@@ -1,5 +1,5 @@
 # Diva WiFi for OpenSimulator Nessie
-## Installation Guide | v0.1.0
+## Installation Guide | v0.9.0 RC1
 
 Diva WiFi provides a web-based administration and user interface for OpenSimulator grids.
 
@@ -30,7 +30,7 @@ The installation uses the existing OpenSimulator database and services.
 
 ### 3. Install the files
 
-1. Download the **Diva WiFi Nessie v0.1.0 binary ZIP** from the project's GitHub release page.
+1. Download the **Diva WiFi Nessie v0.9.0 RC1 binary ZIP** from the project's GitHub release page.
 2. Extract the ZIP using your preferred archive extractor or Windows Explorer.
 3. Open the extracted `bin` folder.
 4. Copy its contents into your OpenSimulator `bin` directory, preserving the language subdirectories.
@@ -95,6 +95,7 @@ Add a `[WifiService]` section to the ROBUST configuration, or edit the existing 
     SmtpUsername = "YOUR_MAILBOX"
     SmtpPassword = "YOUR_MAILBOX_PASSWORD"
 
+    UserDocsPath = "."
     ServePath_BinData = "data, /bin/data"
 ```
 
@@ -149,6 +150,10 @@ The administrator account should be a deliberately selected, secured account. Av
 
 `AccountConfirmationRequired = false` disables the account-confirmation requirement. Review this setting before enabling public user registration.
 
+`UserDocsPath = "."` is the recommended setting for a ROBUST installation started from its own working directory. It places the editable web pages in a `WifiPages` folder within that directory, avoiding accidental sharing between multiple ROBUST copies. The original Diva default is `..`, which places those editable pages one directory above the working directory. Use that layout if desired, or set an explicit directory path. This setting is relative to the process working directory, not necessarily the location of `Robust.exe`.
+
+WiFi also extracts built-in resources to a `WifiPages` folder alongside its DLL. With `UserDocsPath = "."` in the tested installation, both resource types were located under the same ROBUST folder. Existing customised pages are not automatically overwritten; back them up before switching the path. The recommended change does not alter Diva's hardcoded fallback if the setting is omitted.
+
 `ServePath_BinData` is included in the tested configuration and should be retained.
 
 WiFi normally uses ROBUST's configured public HTTP port. A separate `ServerPort` setting is available, but is not required for the tested configuration.
@@ -186,7 +191,7 @@ Check the console output for WiFi initialization messages.
 
 WiFi is loaded through OpenSimulator's add-in system. No additional `[ServiceList]` entry is required for the tested installation.
 
-On first startup, WiFi may extract its web resources into a `WifiPages` directory.
+On first startup, WiFi may extract its web resources into a `WifiPages` directory. The final clean-install test confirmed successful extraction within the ROBUST working directory using `UserDocsPath = "."`.
 
 ### 7. Open the WiFi interface
 
