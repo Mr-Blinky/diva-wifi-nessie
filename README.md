@@ -4,7 +4,7 @@
 
 Diva WiFi provides a web-based interface for grid administration and user-facing services. This project retains the original Diva module structure and web interface, with targeted changes to compile and run on a modern OpenSimulator source tree.
 
-> **Status: v0.1.0 candidate.** Tested against OpenSimulator Nessie Dev commit `58c211829b`, .NET SDK `8.0.426`, Windows, and MariaDB `11.8`. This is not an official Diva or OpenSimulator release.
+> **Status: v0.9.0 RC1 release candidate (MySQL/MariaDB only).** Tested against OpenSimulator Nessie Dev commit `58c211829b`, .NET SDK `8.0.426`, Windows, and MariaDB `11.8`. This is not an official Diva or OpenSimulator release.
 
 ## Supported database
 
@@ -29,6 +29,8 @@ Explicit Hypergrid region linking was tested through WiFi against two OSGrid reg
 3. Install the seven required Diva DLLs and accompanying resources in ROBUST's `bin` directory (see [BUILDING.md](BUILDING.md)).
 4. Configure the three database service providers, `[WifiService]` and optional SMTP settings in the active `Robust.HG.ini` (see [INSTALL.md](INSTALL.md)).
 5. Start ROBUST and check its logs for WiFi addin discovery and initialization. Test the web interface before returning production services to use.
+
+For installations launched from the ROBUST directory, the recommended `[WifiService]` setting `UserDocsPath = "."` keeps editable web pages inside the current working directory. The original Diva fallback `..` stores them one level above it. See [INSTALL.md](INSTALL.md) for details.
 
 Do **not** add a native `[ServiceList] WifiServiceConnector` entry: in the tested setup WiFi is discovered by Mono.Addins when enabled.
 
