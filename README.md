@@ -12,16 +12,20 @@ Diva WiFi provides a web-based interface for grid administration and user-facing
 
 ## Verified functionality
 
-The test deployment started successfully under ROBUST, with WiFi discovered through Mono.Addins. A clean addin-cache and `WifiPages` extraction test succeeded. The admin login, inventory listing, user search/listing, groups, region hyperlinks, and console page loading were exercised. The seven required runtime DLLs and five localization satellite assemblies were built; deployed runtime files matched the build staging hashes.
+The .NET 8/Nessie binary package was installed successfully on a clean copy of an existing ROBUST installation. WiFi loaded through Mono.Addins, extracted its web pages and served the interface without compiling anything during installation.
 
-**Not yet validated:** account creation, password recovery, remote console command execution, localized page behavior, SQLite, Linux, other OpenSimulator commits, and a clean external-checkout build. These features should not be assumed working merely because the UI loads.
+User and administrator interface tests succeeded, including new avatar creation and viewer login, account details and management, inventory, groups, user search/listing, password recovery via SMTP (delivery, link and password update), and web/REST console commands. Remote console access was then disabled in the test configuration.
+
+SMTP uses `SmtpHost`, `SmtpPort`, `SmtpUsername` and `SmtpPassword` in `[WifiService]`. Password reset was verified against an internal SMTP server on port 25 without TLS. Consult [INSTALL.md](INSTALL.md) for generic configuration examples and SMTP port/encryption behaviour.
+
+**Not yet separately validated:** linked Hypergrid region management, localized page behavior, SQLite, Linux, and other OpenSimulator commits. A `System.ObjectDisposedException` on ROBUST shutdown is pending investigation. Successful Hypergrid teleporting is not the same as testing WiFi's linked-region functionality.
 
 ## Installation overview
 
 1. Build the source modules against the matching OpenSimulator checkout as described in [BUILDING.md](BUILDING.md), or use a binary package built for the same revision.
 2. Back up the ROBUST installation, configuration, and database before deployment. Test on a non-production copy first.
 3. Install the seven required Diva DLLs and accompanying resources in ROBUST's `bin` directory (see [BUILDING.md](BUILDING.md)).
-4. Configure the database service providers and `[WifiService]` in the active `Robust.HG.ini` (see [BUILDING.md](BUILDING.md)).
+4. Configure the three database service providers, `[WifiService]` and optional SMTP settings in the active `Robust.HG.ini` (see [INSTALL.md](INSTALL.md)).
 5. Start ROBUST and check its logs for WiFi addin discovery and initialization. Test the web interface before returning production services to use.
 
 Do **not** add a native `[ServiceList] WifiServiceConnector` entry: in the tested setup WiFi is discovered by Mono.Addins when enabled.
@@ -33,7 +37,7 @@ The six original module directories are retained beneath `addon-modules/`: `00Da
 ## Roadmap (ideas, not commitments)
 
 - Validate and, if necessary, port SQLite support.
-- Exercise account registration, password recovery, localization, and remote console execution.
+- Verify linked-region management and localization, and investigate the reported shutdown exception.
 - Test against additional Nessie revisions and operating systems.
 - Investigate a separate **unofficial Diva D3 Nessie standalone** distribution, potentially released as a binary archive and/or a separate repository. This would require dedicated integration and regression testing.
 
