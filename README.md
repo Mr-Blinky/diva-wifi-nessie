@@ -2,12 +2,6 @@
 
 **Unofficial compatibility port of Diva WiFi for OpenSimulator 0.9.3.1 Nessie Dev (.NET 8).**
 
-A personal note from the author:
-
-I have to be honest, and in full disclosure, I did not write a single line of code for this port, ChatGPT did all of it. That said, the whole project was not just ChatGPT's work. I spent around 14 hours over 3 days holding ChatGPT's reins and steering it in the right direction. All console work, connands, ini file edits and so on was all done by myself, taking great care to ensure the code was proper and nothing untoward. Extensive testing was done at each and every part of the project. Several test grids and database dumps were taken over the course. Installation and all of the testing were always done by myself. This wasn't so much as a vibe coding project as much as it was a partnership between a grid admin (and lousy programmer) and a good programmer. ChatGPT cooked and sliced the meat, I prepared the bread, butter, seasoning and salad, and put it all together.
-
-Why did I do this? Simple, I have a ROBUST grid, I wanted a web front end. I also like Diva Wifi. It is simple and customizable, and lightweight too. It plugs right into ROBUST and the database. It requires no additional work to run, simply download the binary release, copy over the files, edit robust.ini or robust.hg.ini (don't forget to put the storage provider under the three sections, not just one!) and start up ROBUST. I also did this because I love OpenSimulator and a lot of the community. I figured if I could have this then everyone could. This shouldn't have been like this, my first prompt to ChatGPT was "Hey, go find me diva wifi and give me instructions to installing it", and it came back with something like "Found it! But this won't work with Nessie. We can port it over if you want!", and then it grew legs. 
-
 Diva WiFi provides a web-based interface for grid administration and user-facing services. This project retains the original Diva module structure and web interface, with targeted changes to compile and run on a modern OpenSimulator source tree.
 
 > **Status: v0.9.0 RC1 release candidate (MySQL/MariaDB only).** Tested against OpenSimulator Nessie Dev commit `58c211829b`, .NET SDK `8.0.426`, Windows, and MariaDB `11.8`. This is not an official Diva or OpenSimulator release.
