@@ -48,3 +48,5 @@ The six original module directories are retained beneath `addon-modules/`: `00Da
 ## Credits and licensing
 
 Original Diva WiFi and related code are credited to their respective authors and contributors, including Crista Lopes (Diva Canto), Marck, and OpenSimulator contributors. This compatibility port is independent and unofficial. Original file-level copyright notices are preserved. The original web footer credits its design to Crista Lopes and Marck and links to Creative Commons Attribution 3.0. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for known notices and outstanding licence-verification work.
+
+[Personal note from the author](Personal note from the author.md)
