@@ -30,6 +30,8 @@
   <Files>
     <Match pattern="*.cs" recurse="true">
       <Exclude pattern="Tests" />
+      <Exclude pattern="obj" />
+      <Exclude pattern="bin" />
     </Match>
     <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
     <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
