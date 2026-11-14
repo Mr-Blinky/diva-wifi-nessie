@@ -1,6 +1,6 @@
 # Changes: Diva WiFi Nessie v0.1.0 candidate
 
-This is an **unofficial compatibility port**, not a rewrite of Diva WiFi. The clean source staging tree retains the original 398 source/resource files; **11 existing files differ** from the inspected upstream Diva distribution. No original files were removed. Generated `.csproj` files are excluded from the release source.
+This is an **unofficial compatibility port**, not a rewrite of Diva WiFi. The clean source staging tree retains the original 398 source/resource files; The original compatibility changes are documented below; subsequent packaging and UI attribution improvements are noted separately. No original files were removed. Generated `.csproj` files are excluded from the release source.
 
 ## Build-system compatibility
 
@@ -21,16 +21,26 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 - `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`.
 - `21Wifi/WifiMain.cs`: removed an unused exception variable from a `catch (InvalidOperationException)` clause (warning cleanup; behavior intended unchanged).
 
+## Packaging, SMTP configuration and attribution
+
+- `21Wifi/Wifi.ini`: documented generic outgoing SMTP settings and provided placeholder values instead of Gmail sample credentials.
+- `21Wifi/WifiPages/links.html`: added a link to this unofficial Nessie port beneath the original Diva Distro link, retaining original credits and navigation.
+- `INSTALL.md` and `README.md`: updated for the binary installation procedure, email settings and verified functional tests.
+
 ## Build and runtime evidence
 
-Seven required DLLs were built and deployed for the Windows/MariaDB test installation. Five localization satellite assemblies compiled. ROBUST startup, addin discovery, resource extraction, admin login, inventory, user listing/search, groups, region links, and console page loading were exercised successfully. This does not constitute comprehensive regression coverage.
+Seven required DLLs were built and deployed for the Windows/MariaDB test installation. Five localization satellite assemblies compiled. A clean install from the release-candidate ZIP on a copied ROBUST deployment succeeded.
+
+The user and administrator interface, account creation and viewer login, inventory, groups, user management, password recovery via SMTP (including successful password change), and REST console commands were exercised successfully. Explicit Hypergrid links to two OSGrid regions were created, displayed in WiFi and in-world map search, then deleted successfully. A remote destination's access restrictions are independent of the linking mechanism.
+
+The earlier DivaData invalid-cast warnings did not recur after all three provider settings were configured. One intermittent shutdown exception appears to originate in upstream OpenSimulator's HTTP timeout-manager teardown and is deferred.
 
 ## Explicit limitations
 
 - **MySQL/MariaDB supported; SQLite unsupported and untested.** The generated SQLite project is not evidence of support.
 - Linux and other OpenSimulator commits untested.
-- Registration, password recovery, remote console command execution, and localized page behavior untested.
-- A clean build from the eventual published repository has not yet been completed.
+- Localized page behavior not separately verified.
+- The updated binaries containing the new sidebar attribution link still require rebuilding and a final installation check.
 
 ## Future possibilities
 
