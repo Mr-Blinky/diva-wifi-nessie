@@ -18,7 +18,9 @@ User and administrator interface tests succeeded, including new avatar creation 
 
 SMTP uses `SmtpHost`, `SmtpPort`, `SmtpUsername` and `SmtpPassword` in `[WifiService]`. Password reset was verified against an internal SMTP server on port 25 without TLS. Consult [INSTALL.md](INSTALL.md) for generic configuration examples and SMTP port/encryption behaviour.
 
-**Not yet separately validated:** linked Hypergrid region management, localized page behavior, SQLite, Linux, and other OpenSimulator commits. A `System.ObjectDisposedException` on ROBUST shutdown is pending investigation. Successful Hypergrid teleporting is not the same as testing WiFi's linked-region functionality.
+Explicit Hypergrid region linking was tested through WiFi against two OSGrid regions, including link creation, remote map-image retrieval, WiFi listing, in-world map search and link deletion. Normal Hypergrid teleports are separate from these persistent grid-service links. The earlier DivaData invalid-cast warnings stopped after all three storage providers were configured.
+
+**Not yet separately validated:** localized page behavior, SQLite, Linux, and other OpenSimulator commits. A one-off `System.ObjectDisposedException` during ROBUST HTTP-listener shutdown appears to originate in upstream OpenSimulator; further investigation is deferred unless it recurs.
 
 ## Installation overview
 
@@ -37,7 +39,7 @@ The six original module directories are retained beneath `addon-modules/`: `00Da
 ## Roadmap (ideas, not commitments)
 
 - Validate and, if necessary, port SQLite support.
-- Verify linked-region management and localization, and investigate the reported shutdown exception.
+- Verify localization, and revisit the upstream shutdown exception if it recurs.
 - Test against additional Nessie revisions and operating systems.
 - Investigate a separate **unofficial Diva D3 Nessie standalone** distribution, potentially released as a binary archive and/or a separate repository. This would require dedicated integration and regression testing.
 
