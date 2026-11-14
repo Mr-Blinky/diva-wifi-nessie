@@ -213,10 +213,13 @@ The following functionality has been exercised successfully on the tested Window
 - Password-recovery email delivery, recovery-link use and successful password change
 - Web/REST console commands (tested, but disabled by default in the test deployment)
 - Other available user and administrator forms and controls exercised in the test deployment
+- Explicit linked Hypergrid region creation, listing, in-world map discovery and deletion
 
 The source has also been rebuilt successfully from a clean Nessie checkout.
 
-**Not yet separately verified:** creation/management of linked Hypergrid regions and language/localization behavior. Existing Hypergrid teleports working do not by themselves validate WiFi's hyperlink-management feature. A shutdown `System.ObjectDisposedException` has been observed and remains under investigation.
+Linked Hypergrid region management was verified against OSGrid: WiFi created two explicit region links, ROBUST retrieved the remote region map image, the destinations appeared in the linked-region list and in-world map search, and WiFi successfully deleted both links. Hypergrid destination access policies still apply independently of successful linking.
+
+**Not yet separately verified:** language/localization behavior. An intermittent `System.ObjectDisposedException` was observed once during ROBUST HTTP-listener shutdown; source inspection points to an upstream timeout-manager race, so it is deferred unless reproduced. No DivaData invalid-cast messages have been observed since all three storage-provider settings were configured.
 
 SQLite and standalone Diva D3 configurations are outside the scope of this release.
 
