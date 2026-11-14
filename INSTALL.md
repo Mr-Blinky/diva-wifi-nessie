@@ -90,6 +90,11 @@ Add a `[WifiService]` section to the ROBUST configuration, or edit the existing 
 
     AccountConfirmationRequired = false
 
+    SmtpHost = "YOUR_EMAIL_SERVER"
+    SmtpPort = 587
+    SmtpUsername = "YOUR_MAILBOX"
+    SmtpPassword = "YOUR_MAILBOX_PASSWORD"
+
     ServePath_BinData = "data, /bin/data"
 ```
 
@@ -148,6 +153,25 @@ The administrator account should be a deliberately selected, secured account. Av
 
 WiFi normally uses ROBUST's configured public HTTP port. A separate `ServerPort` setting is available, but is not required for the tested configuration.
 
+#### 5.3 Configure outgoing SMTP email
+
+WiFi uses SMTP for password recovery and account notifications. Add the following settings to the same `[WifiService]` section (they are included in the example above):
+
+```ini
+    SmtpHost = "YOUR_EMAIL_SERVER"
+    SmtpPort = 587
+    SmtpUsername = "YOUR_MAILBOX"
+    SmtpPassword = "YOUR_MAILBOX_PASSWORD"
+```
+
+Replace all placeholders with your SMTP server, sending mailbox and password. `SmtpUsername` also serves as the **From** email address, so it should contain a valid mailbox address.
+
+**SMTP encryption in this release:** port **25** disables TLS; all other ports enable STARTTLS using .NET `SmtpClient`. Port **587** is suitable for SMTP servers configured for authenticated STARTTLS submission. Port **25** was verified with a local mail server without TLS; only use unencrypted SMTP on a controlled, trusted network. This implementation does not provide implicit TLS (SMTPS) on port **465**.
+
+Keep the real SMTP password in your private ROBUST configuration, not in source control or the published ZIP. Restrict access to that configuration.
+
+To test email, restart ROBUST, request a password reset for a test account with an email address you control, check that the message arrives, follow its recovery link and set a new password. The reset link uses the configured `WebAddress`, so ensure that address is reachable by the recipient. If WiFi is served publicly, use HTTPS before exposing password-reset links to general users.
+
 ### 6. Start ROBUST
 
 Start ROBUST normally, using the configuration file you edited.
@@ -178,20 +202,21 @@ Sign in using the configured WiFi administrator account.
 
 ### 8. Testing status
 
-The following functionality has been exercised successfully during development:
+The following functionality has been exercised successfully on the tested Windows/Nessie/MariaDB configuration:
 
-- ROBUST startup and WiFi initialization
-- Initial web-resource extraction
-- Administrator login
-- User listing and search
-- Inventory browsing
-- Groups display
-- Region and Hypergrid hyperlink display
-- Console page display
+- Clean binary ZIP installation on a copy of an existing ROBUST grid
+- ROBUST startup, WiFi add-in discovery and initial web-resource extraction
+- Administrator and ordinary-user access and navigation
+- New account creation (user level 0, "Local User"), initial appearance and successful viewer login
+- User listing, search, account management and account-detail changes
+- Inventory browsing and group management
+- Password-recovery email delivery, recovery-link use and successful password change
+- Web/REST console commands (tested, but disabled by default in the test deployment)
+- Other available user and administrator forms and controls exercised in the test deployment
 
 The source has also been rebuilt successfully from a clean Nessie checkout.
 
-Additional functions, including new account registration, password recovery, remote console command execution and the language interfaces, have not yet been individually verified.
+**Not yet separately verified:** creation/management of linked Hypergrid regions and language/localization behavior. Existing Hypergrid teleports working do not by themselves validate WiFi's hyperlink-management feature. A shutdown `System.ObjectDisposedException` has been observed and remains under investigation.
 
 SQLite and standalone Diva D3 configurations are outside the scope of this release.
 
@@ -208,6 +233,10 @@ Check the three Diva storage-provider settings and confirm that your existing da
 **WiFi configuration is not detected**
 
 Check that `[WifiService]` is present in the ROBUST configuration actually being loaded. Avoid duplicate sections or conflicting values in included configuration files.
+
+**Password-recovery email fails**
+
+Check `SmtpHost`, `SmtpPort`, `SmtpUsername` and `SmtpPassword` in `[WifiService]`. Confirm your SMTP server accepts the connection and the selected port matches its TLS mode. Inspect the ROBUST log for SMTP errors. Also verify `WebAddress` produces a reachable recovery link.
 
 **Web pages or resources are missing**
 
