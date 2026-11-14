@@ -7,7 +7,7 @@
 - **Windows**, with OpenSimulator's `runprebuild.bat`
 - **MariaDB 11.8** through `Diva.Data.MySQL.dll`
 
-Other revisions, operating systems, and SQLite have not been verified. **Only MySQL/MariaDB is supported for v0.1.0.**
+Other revisions, operating systems, and SQLite have not been verified. **Only MySQL/MariaDB is supported for the current release candidate.**
 
 ## Prepare the source tree
 
@@ -99,9 +99,9 @@ Do **not** add `WifiServiceConnector` under `[ServiceList]`. The tested setup us
 1. Back up the database, configuration, and existing deployment. Prefer a disposable test ROBUST installation first.
 2. Ensure the active ROBUST process can bind its configured ports; don't run test and production ROBUST simultaneously on the same listeners.
 3. Start ROBUST with the intended configuration and inspect the log for WiFi addin discovery, initialization, and errors.
-4. Test admin login and relevant pages. Avoid assuming untested operations (registration, password recovery, remote commands) are safe for production.
+4. Test admin login and relevant pages. In development testing, new avatar registration, SMTP password recovery, account/group management, REST console commands, and explicit Hypergrid link creation/deletion worked. Review administrative controls before making the service available publicly.
 5. On a test installation only, a fresh Mono.Addins cache and `WifiPages` extraction can be used to check resource completeness; don't delete production caches or content without backups.
 
 ## Clean-build release gate
 
-Before tagging a public release, repeat the build from a **fresh matching OpenSimulator checkout** plus only the published six modules and documented prerequisites. Verify the seven DLLs, five satellite assemblies, and other runtime files; then repeat the ROBUST startup and functional checks. This gate has not yet been completed.
+Before tagging a public release, rebuild from the **matching clean OpenSimulator source worktree** plus the current six published Diva modules. Verify the seven DLLs, five satellite assemblies, and other runtime files; then repeat the ROBUST startup and functional checks against a fresh copy of the deployment. Record the actual results before publishing; the new sidebar attribution template requires a rebuilt `Diva.Wifi.dll`.
