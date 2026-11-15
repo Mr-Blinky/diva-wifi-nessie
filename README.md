@@ -41,6 +41,7 @@ The six original module directories are retained beneath `addon-modules/`: `00Da
 ## Roadmap (ideas, not commitments)
 
 - Validate and, if necessary, port SQLite support.
+- Review and verify the OpenSimulator/ROBUST version and runtime details shown in the WiFi interface. `WifiScriptFace.Version` still uses `OpenSim.VersionInfo.Version`, but the legacy `GetRuntimeInformation()` call was replaced with `.NET RuntimeInformation.FrameworkDescription` during the Nessie port. Restore or improve the original information display where appropriate, using Nessie-compatible APIs and testing the rendered page.
 - Verify localization, and revisit the upstream shutdown exception if it recurs.
 - Test against additional Nessie revisions and operating systems.
 - Investigate a separate **unofficial Diva D3 Nessie standalone** distribution, potentially released as a binary archive and/or a separate repository. This would require dedicated integration and regression testing.
