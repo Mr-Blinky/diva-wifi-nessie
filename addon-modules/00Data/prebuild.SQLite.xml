@@ -16,7 +16,7 @@
   <Reference name="System.Core"/>
   <Reference name="System.Data"/>
 
-  <Reference name="Mono.Data.Sqlite"/>
+  <Reference name="System.Data.SQLite" path="../../../bin/"/>
   <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
 
   <Reference name="OpenSim.Framework"/>
@@ -30,6 +30,8 @@
   <Files>
     <Match pattern="*.cs" recurse="true">
       <Exclude pattern="Tests" />
+      <Exclude pattern="obj" />
+      <Exclude pattern="bin" />
     </Match>
   </Files>
 </Project>
