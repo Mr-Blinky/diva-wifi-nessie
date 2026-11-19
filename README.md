@@ -20,6 +20,8 @@ SMTP uses `SmtpHost`, `SmtpPort`, `SmtpUsername` and `SmtpPassword` in `[WifiSer
 
 Explicit Hypergrid region linking was tested through WiFi against two OSGrid regions, including link creation, remote map-image retrieval, WiFi listing, in-world map search and link deletion. Normal Hypergrid teleports are separate from these persistent grid-service links. The earlier DivaData invalid-cast warnings stopped after all three storage providers were configured.
 
+The original WiFi footer's optional OpenSimulator/ROBUST version and runtime display was tested successfully on Nessie: `OpenSim 0.9.3.1 Nessie Dev .NET 8.0.32`. Diva leaves it hidden by default; administrators can explicitly enable it in `WifiPages/footer.html` by removing the spaces between `#` and `get` in the existing `Version` and `RuntimeInfo` template directives. See [INSTALL.md](INSTALL.md).
+
 **Not yet separately validated:** localized page behavior, SQLite, Linux, and other OpenSimulator commits. A one-off `System.ObjectDisposedException` during ROBUST HTTP-listener shutdown appears to originate in upstream OpenSimulator; further investigation is deferred unless it recurs.
 
 ## Installation overview
@@ -41,7 +43,6 @@ The six original module directories are retained beneath `addon-modules/`: `00Da
 ## Roadmap (ideas, not commitments)
 
 - Validate and, if necessary, port SQLite support.
-- Review and verify the OpenSimulator/ROBUST version and runtime details shown in the WiFi interface. `WifiScriptFace.Version` still uses `OpenSim.VersionInfo.Version`, but the legacy `GetRuntimeInformation()` call was replaced with `.NET RuntimeInformation.FrameworkDescription` during the Nessie port. Restore or improve the original information display where appropriate, using Nessie-compatible APIs and testing the rendered page.
 - Verify localization, and revisit the upstream shutdown exception if it recurs.
 - Test against additional Nessie revisions and operating systems.
 - Investigate a separate **unofficial Diva D3 Nessie standalone** distribution, potentially released as a binary archive and/or a separate repository. This would require dedicated integration and regression testing.
