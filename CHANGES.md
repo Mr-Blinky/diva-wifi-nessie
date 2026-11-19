@@ -18,7 +18,7 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 
 - `01DivaUtils/Request.cs`: removed obsolete `System.Web` usage and the unused `HttpCookieCollection` field/assignment.
 - `01DivaUtils/WebAppUtils.cs`: removed unused exception variables from two `catch` clauses (warning cleanup; behavior intended unchanged).
-- `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`.
+- `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`. The original `Version` property (`OpenSim.VersionInfo.Version`) and the footer's opt-in display were preserved. Both version and runtime information were subsequently verified in the rendered Nessie WiFi footer; no further code change was needed.
 - `21Wifi/WifiMain.cs`: removed an unused exception variable from a `catch (InvalidOperationException)` clause (warning cleanup; behavior intended unchanged).
 
 ## Packaging, SMTP configuration and attribution
@@ -33,6 +33,8 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 Seven required DLLs were built and deployed for the Windows/MariaDB test installation. Five localization satellite assemblies compiled. A clean install from the release-candidate ZIP on a copied ROBUST deployment succeeded.
 
 The user and administrator interface, account creation and viewer login, inventory, groups, user management, password recovery via SMTP (including successful password change), and REST console commands were exercised successfully. Explicit Hypergrid links to two OSGrid regions were created, displayed in WiFi and in-world map search, then deleted successfully. A remote destination's access restrictions are independent of the linking mechanism.
+
+The original footer's optional `Version` and `RuntimeInfo` display was enabled for a live-page test and correctly rendered `OpenSim 0.9.3.1 Nessie Dev .NET 8.0.32`. As in upstream Diva WiFi, these details remain hidden by default because advertising software versions can aid targeted attacks. The test required only enabling the existing template directives in `WifiPages/footer.html`, not recompiling the software.
 
 The earlier DivaData invalid-cast warnings did not recur after all three provider settings were configured. One intermittent shutdown exception appears to originate in upstream OpenSimulator's HTTP timeout-manager teardown and is deferred.
 
