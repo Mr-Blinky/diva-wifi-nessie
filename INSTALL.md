@@ -205,6 +205,22 @@ The tested installation is accessible at the `/wifi` path on ROBUST's public HTT
 
 Sign in using the configured WiFi administrator account.
 
+#### 7.1 Optional OpenSimulator/ROBUST version display
+
+The original Diva WiFi footer supports displaying the OpenSimulator/ROBUST version and the runtime description, but deliberately **hides both by default** to avoid advertising software versions to potential attackers. The template is `WifiPages/footer.html` (using the user-editable page location controlled by `UserDocsPath`). Its original disabled line is:
+
+```html
+<p><!-- # get var=Version --> <!-- # get var=RuntimeInfo --></p>
+```
+
+To opt in, remove the spaces between `#` and `get` in both directives:
+
+```html
+<p><!-- #get var=Version --> <!-- #get var=RuntimeInfo --></p>
+```
+
+The enabled footer was verified in a running Nessie ROBUST WiFi interface and displayed `OpenSim 0.9.3.1 Nessie Dev .NET 8.0.32`. The default template remains unchanged; choose whether to reveal this information on a public-facing site. No DLL rebuild is needed.
+
 ### 8. Testing status
 
 The following functionality has been exercised successfully on the tested Windows/Nessie/MariaDB configuration:
@@ -219,6 +235,7 @@ The following functionality has been exercised successfully on the tested Window
 - Web/REST console commands (tested, but disabled by default in the test deployment)
 - Other available user and administrator forms and controls exercised in the test deployment
 - Explicit linked Hypergrid region creation, listing, in-world map discovery and deletion
+- Optional original footer version/runtime display: verified `OpenSim 0.9.3.1 Nessie Dev .NET 8.0.32` when deliberately enabled (hidden by default)
 
 The source has also been rebuilt successfully from a clean Nessie checkout.
 
