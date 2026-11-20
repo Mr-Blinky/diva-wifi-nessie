@@ -79,7 +79,8 @@ namespace Diva.Wifi
                         string.Format(_("Your account is {0} {1}", env), account.FirstName, account.LastName),
                         _("Click here to reset your password:", env),
                         url);
-                    if (SendEMail(email, _("Password Reset", env), message))
+                    // Synchronous, so the page reports whether the mail was actually accepted.
+                    if (SendEMailSync(email, null, null, _("Password Reset", env), message))
                         NotifyWithoutButton(env, _("Check your email. You must reset your password within 60 minutes.", env));
                     else
                         NotifyWithoutButton(env, _("Email could not be sent.", env));

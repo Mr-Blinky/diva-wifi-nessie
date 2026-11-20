@@ -20,6 +20,7 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 - `01DivaUtils/WebAppUtils.cs`: removed unused exception variables from two `catch` clauses (warning cleanup; behavior intended unchanged).
 - `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`.
 - `21Wifi/WifiMain.cs`: removed an unused exception variable from a `catch (InvalidOperationException)` clause (warning cleanup; behavior intended unchanged).
+- `21Wifi/WebApp/Services.cs`, `Services.PasswordRecovery.cs`: password recovery now sends synchronously and reports "Email could not be sent." when the SMTP server rejects the message, instead of always reporting success. Mail failures are logged at WARN instead of DEBUG. Each message uses its own `SmtpClient` (30 s timeout), so concurrent sends no longer collide on a shared client.
 
 ## Packaging, SMTP configuration and attribution
 
