@@ -411,4 +411,5 @@
   <data name="Addons menu" xml:space="preserve">
     <value>Menu Adicional</value>
   </data>
+  <data name="No account matches that name and email address."><value>Nenhuma conta corresponde a esse nome e endereço de e-mail.</value></data>
 </root>

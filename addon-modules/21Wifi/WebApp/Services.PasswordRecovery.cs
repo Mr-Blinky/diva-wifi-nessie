@@ -96,6 +96,7 @@ namespace Diva.Wifi
                 }
             }
 
+            NotifyWithoutButton(env, _("No account matches that name and email address.", env));
             return m_WebApp.ReadFile(env, "index.html");
         }
 

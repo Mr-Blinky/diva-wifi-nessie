@@ -125,4 +125,5 @@
   <data name="Region link to {0} established. (If this link already existed, then it will remain at the original location.)"><value>Se ha establecido el vinculo con la región {0} (Si el vinculo ya existe, permanecerá entonces en la ubicación original.)</value></data>
   <data name="Region link not found."><value>Vinculo con la región no encontrado.</value></data>
   <data name="Scripts"><value>Scripts</value></data>
+  <data name="No account matches that name and email address."><value>No hay ninguna cuenta con ese nombre y esa dirección de correo electrónico.</value></data>
   </root>

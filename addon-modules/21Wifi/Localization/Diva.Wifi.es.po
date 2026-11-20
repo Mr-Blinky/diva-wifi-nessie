@@ -440,3 +440,7 @@ msgstr "No se encontraron usuarios"
 #: ../WebApp/WifiScriptFace.cs:377
 msgid "No regions found"
 msgstr "No se encontraron regiones"
+
+msgid "No account matches that name and email address."
+msgstr "No hay ninguna cuenta con ese nombre y esa dirección de correo electrónico."
+

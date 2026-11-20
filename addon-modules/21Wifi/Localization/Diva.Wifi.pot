@@ -434,3 +434,5 @@ msgstr ""
 msgid "Addons menu"
 msgstr ""
 
+msgid "No account matches that name and email address."
+msgstr ""

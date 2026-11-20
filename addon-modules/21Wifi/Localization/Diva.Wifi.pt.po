@@ -439,3 +439,7 @@ msgstr "Nenhuma região encontrada"
 #: Addons menu
 msgid "Addons menu"
 msgstr "Menu Adicional"
+
+msgid "No account matches that name and email address."
+msgstr "Nenhuma conta corresponde a esse nome e endereço de e-mail."
+
