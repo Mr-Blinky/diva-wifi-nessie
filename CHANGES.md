@@ -21,6 +21,24 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 - `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`. The original `Version` property (`OpenSim.VersionInfo.Version`) and the footer's opt-in display were preserved. Both version and runtime information were subsequently verified in the rendered Nessie WiFi footer; no further code change was needed.
 - `21Wifi/WifiMain.cs`: removed an unused exception variable from a `catch (InvalidOperationException)` clause (warning cleanup; behavior intended unchanged).
 
+
+## Pending validation: avatar-specific password recovery
+
+This branch ports the avatar-name and UUID recovery flow contributed by Robyn Starbrook (original commits `a609512` and `dee0d8c`) without PostgreSQL, SQLite or SMTP transport refactoring. A reset request now requires first name, last name and registered email, and the recovery link identifies the account by UUID. Unknown account details receive the same public confirmation as a matching account. Reset failure no longer falsely reports success. The existing asynchronous SMTP sender remains unchanged; acceptance or delivery is not guaranteed by the confirmation.
+
+**Test deployment:** stop ROBUST; back up any customised pages; delete only the two extracted pages `forgotpasswordform.html` and `recoveringpassword.html` from the active `WifiPages` directory (and any language-specific copies being tested). Restart ROBUST and confirm the new pages were regenerated before testing. If the pages do not regenerate, restore the backups and inspect the resource extraction path. This change has not yet been compiled or runtime-tested on the target deployment. Check shared-email avatars, mismatched email, invalid/expired tokens, successful reset and SMTP delivery. Rate limiting and token replay behaviour require separate verification.
+
+## In-memory single-use recovery tokens (tested on Nessie/MariaDB)
+
+- WiFi now retains only a SHA-256 hash of the newest recovery token per avatar plus a fixed UTC expiration time **in process memory**. No new database table, schema change, persistent token register or OpenSimulator core modification is required.
+- Only the newest link for an avatar is accepted. Links expire **60 minutes after issuance**; opening a link does not extend WiFi's deadline.
+- A valid reset consumes the WiFi token before attempting the password change. Reset attempts are serialized under a lock. On success WiFi also releases the underlying OpenSimulator authentication token. If the password update fails, users must request a new link.
+- **All outstanding WiFi recovery links are invalidated when ROBUST restarts.** This includes links issued by older WiFi builds after deploying the in-memory implementation. Users must simply request a fresh email.
+- The previous file-based test build created `WifiPasswordRecoveryTokens.json` in the test ROBUST executable directory. The new build **does not read or write this file**. Stop ROBUST and securely delete the leftover JSON file once the new DLL is deployed; do not delete unrelated files.
+- This memory-only approach assumes one WiFi/ROBUST process handles recovery requests. Load-balanced or separate WiFi processes do not share tokens and require a coordinated implementation.
+- **Verified in test ROBUST (22 November 2026):** clean .NET 8 build (0 warnings, 0 errors), recovery email delivery, successful password reset, rejection of a previously used link, invalidation of an unused link after ROBUST restart, and rejection of an older email A after a newer recovery email B was requested for the same avatar. Previously, the avatar-name/UUID flow and two separate avatars sharing one registered email were also tested successfully.\n- **Further verified (22 November 2026):** newer email B successfully completed the password reset after the older email A was rejected; B's token was consumed on use.
+- **Still pending live verification:** the full 60-minute expiry (a fixed UTC expiry check is present in code). No HTML page replacement is required for this code-only change.
+
 ## Packaging, SMTP configuration and attribution
 
 - `21Wifi/Wifi.ini`: documented generic outgoing SMTP settings and provided placeholder values instead of Gmail sample credentials.
