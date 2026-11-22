@@ -40,6 +40,14 @@ The command sequence above is a **documented build procedure**, not a claim that
 
 The `Diva.Data.SQLite.csproj` definition is generated, but **do not build or deploy it as a supported provider for this release**.
 
+### PostgreSQL provider (experimental)
+
+`addon-modules/00Data/PGSQL` builds `Diva.Data.PGSQL.dll`, which wraps OpenSimulator's `OpenSim.Data.PGSQL` the same way `Diva.Data.MySQL` wraps `OpenSim.Data.MySQL`. Build `addon-modules/00Data/PGSQL/Diva.Data.PGSQL.csproj` after `Diva.Data.csproj`, deploy the DLL next to the others, and set `StorageProvider = "Diva.Data.PGSQL.dll"` in the three sections shown below. OpenSimulator's `Npgsql.dll` must be present in `bin`.
+
+OpenSim's PostgreSQL classes load migrations from the *derived* type's assembly, so `PGSQL/Resources/` carries copies of the upstream PostgreSQL `.migrations` scripts for the stores the wrappers touch, taken unchanged from OpenSimulator `58c211829b`. `GridUserStore.migrations` adds a Diva version 3 that creates the `TOS` column. If upstream adds a migration version for one of these stores, copy the updated file here.
+
+The provider has been compiled and its Diva-specific queries exercised against PostgreSQL 18; it has not yet been tested in a running ROBUST/WiFi deployment.
+
 The updated `21Wifi/prebuild.xml` embeds `Localization/*.resx`, allowing the normal .NET build to generate language satellite assemblies. Satellite compilation has been verified; localized page behavior has not.
 
 ## Runtime package contents

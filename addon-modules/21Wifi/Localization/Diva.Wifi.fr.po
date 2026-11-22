@@ -355,5 +355,8 @@ msgstr "Aucun utilisateur trouvé"
 msgid "No regions found"
 msgstr "Pas de régions trouvé"
 
+msgid "No account matches that name and email address."
+msgstr "Aucun compte ne correspond à ce nom et à cette adresse e-mail."
+
 #~ msgid "Region link not found"
 #~ msgstr "Lien région non trouvé"

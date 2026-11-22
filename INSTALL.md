@@ -37,7 +37,28 @@ The installation uses the existing OpenSimulator database and services.
 
 The package includes seven Diva DLLs, five language resource assemblies, `Wifi.ini` and `Diva.Wifi.pot`.
 
-The packaged `Wifi.ini` is provided as a reference and for alternative configuration arrangements. The recommended installation method below configures WiFi directly through ROBUST.
+#### 3.1 Choose one configuration method
+
+WiFi can be configured in either of two ways. **Use one method or the other, never both.** Mixing them is the most common cause of startup failures.
+
+**Method A: inline sections (recommended).** This is the method the rest of this guide describes.
+
+- Put the `[WifiService]` section directly in your ROBUST configuration (`Robust.HG.ini` or `Robust.ini`), as described in section 5.
+- Add this to `OpenSim.ini` on every simulator that shares the same `bin` directory:
+
+  ```ini
+  [WifiService]
+      Enabled = false
+  ```
+
+- Because `[WifiService]` already exists in both configurations, WiFi never reads `Wifi.ini`. You can leave the packaged `Wifi.ini` where it is; it is ignored.
+
+**Method B: standalone `Wifi.ini`.**
+
+- Do **not** add a `[WifiService]` section to `Robust.HG.ini`, `Robust.ini` or `OpenSim.ini`.
+- On first start, WiFi copies the packaged `Wifi.ini` into ROBUST's `ConfigDirectory` (for example `robust-include/Wifi.ini`), logs `PLEASE EDIT ... BEFORE RUNNING THIS SERVICE` and stops. Edit that copy, set `Enabled = true`, then restart ROBUST.
+- The **entire** file is merged into the host configuration, including its `[DatabaseService]` section. Its `StorageProvider` and `ConnectionString` must therefore match your grid's real database exactly, or they will override the correct values for other services.
+- Simulators also load WiFi's region module. A simulator whose configuration has no `[WifiService]` section merges `Wifi.ini` from its own `ConfigDirectory` (usually `bin/Wifi.ini`). Make sure that copy's `[DatabaseService]` is also correct, or add `[WifiService] Enabled = false` to `OpenSim.ini` as in Method A.
 
 ### 4. Configure the database providers
 
@@ -68,11 +89,15 @@ After the addition, that part of the section should read:
 
 Make the same `StorageProvider` addition under `[UserAccountService]` and `[GridUserService]`.
 
+**Only these three sections.** The Diva storage providers implement only the grid, user-account and grid-user data interfaces. Do not set a Diva provider on any other section, such as `[AgentPreferencesService]`, `[PresenceService]` or `[AvatarService]`. Those services must keep using OpenSimulator's own provider from `[DatabaseService]`, or ROBUST fails with `Could not find a storage interface in the given module`.
+
 **Do not replace entire configuration sections or create duplicate section headings.** Keep all existing entries, especially `LocalServiceModule`, database connection strings, region settings and Hypergrid settings. `LocalServiceModule` selects the service implementation; `StorageProvider` selects its database storage provider.
 
 These three additions match the configuration used during development testing.
 
 ### 5. Configure WiFi
+
+This section describes Method A (see section 3.1). Remember to also add `[WifiService] Enabled = false` to `OpenSim.ini`.
 
 Add a `[WifiService]` section to the ROBUST configuration, or edit the existing section if one is already present:
 
@@ -254,6 +279,14 @@ Confirm that ROBUST has started, `[WifiService]` is enabled, and you are using t
 **Database or service initialization errors**
 
 Check the three Diva storage-provider settings and confirm that your existing database connection strings remain unchanged.
+
+**`Could not find a storage interface in the given module` (ROBUST)**
+
+A Diva provider (`Diva.Data.*.dll`) has been set on a section other than `[GridService]`, `[UserAccountService]` or `[GridUserService]`. The stack trace names the affected service, for example `AgentPreferencesServiceBase`. Remove that section's `StorageProvider` line so it falls back to `[DatabaseService]`.
+
+**Simulator fails with `Couldn't set data source` or a storage-interface error (for example in OfflineIM)**
+
+The simulator has no `[WifiService]` section, so WiFi's region module merged the packaged `Wifi.ini` and its `[DatabaseService]` defaults (MySQL syntax, `opensim123`) over the simulator's real database settings. If you use Method A, add `[WifiService] Enabled = false` to `OpenSim.ini`. See section 3.1.
 
 **WiFi configuration is not detected**
 

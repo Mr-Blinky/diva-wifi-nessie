@@ -125,4 +125,5 @@
   <data name="Region link to {0} established. (If this link already existed, then it will remain at the original location.)"><value>Verbindung zu Region {0} hergestellt. (Falls diese Verbindung bereits vorhanden war, dann hat sie ihre bisherige Position auf der Landkarte behalten.)</value></data>
   <data name="Region link not found."><value>Hyperlink nicht gefunden.</value></data>
   <data name="Scripts"><value>Skripte</value></data>
+  <data name="No account matches that name and email address."><value>Es gibt kein Konto mit diesem Namen und dieser E-Mail-Adresse.</value></data>
   </root>

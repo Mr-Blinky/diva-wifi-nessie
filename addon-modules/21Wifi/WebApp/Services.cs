@@ -71,7 +71,6 @@ namespace Diva.Wifi
         private const string m_PendingIdentifier = "*pending* ";
 
         private WebApp m_WebApp;
-        private SmtpClient m_Client;
 
         private UserAccountService m_UserAccountService;
         private PasswordAuthenticationService m_AuthenticationService;
@@ -120,14 +119,17 @@ namespace Diva.Wifi
                     delegate(object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
                         { return true; };
 
-            // Connect to our outgoing mail server for password forgetfulness
-            m_Client = new SmtpClient(m_WebApp.SmtpHost, m_WebApp.SmtpPort);
-            if (m_WebApp.SmtpPort == 25)
-                m_Client.EnableSsl = false;
-            else
-                m_Client.EnableSsl = true;
-            m_Client.Credentials = new NetworkCredential(m_WebApp.SmtpUsername, m_WebApp.SmtpPassword);
-            m_Client.SendCompleted += new SendCompletedEventHandler(SendCompletedCallback);
+        }
+
+        // SmtpClient cannot run overlapping sends, so each message gets its own client.
+        private SmtpClient CreateSmtpClient()
+        {
+            SmtpClient client = new SmtpClient(m_WebApp.SmtpHost, m_WebApp.SmtpPort);
+            // Port 25 is plain SMTP; every other port uses STARTTLS.
+            client.EnableSsl = m_WebApp.SmtpPort != 25;
+            client.Credentials = new NetworkCredential(m_WebApp.SmtpUsername, m_WebApp.SmtpPassword);
+            client.Timeout = 30000;
+            return client;
         }
 
         private void CreateGod()
@@ -373,7 +375,9 @@ namespace Diva.Wifi
                     msg.Bcc.Add(bcc);
                 msg.Subject = "[" + m_WebApp.GridName + "] " + subject;
                 msg.Body = message;
-                m_Client.Send(msg);
+                using (SmtpClient client = CreateSmtpClient())
+                    client.Send(msg);
+                m_log.DebugFormat("[Wifi]: Message sent to {0}.", to);
             }
             catch (Exception e)
             {
@@ -393,7 +397,9 @@ namespace Diva.Wifi
                 msg.To.Add(new MailAddress(to));
                 msg.Subject = "[" + m_WebApp.GridName + "] " + subject;
                 msg.Body = message;
-                m_Client.SendAsync(msg, to);
+                SmtpClient client = CreateSmtpClient();
+                client.SendCompleted += SendCompletedCallback;
+                client.SendAsync(msg, to);
             }
             catch (Exception e)
             {
@@ -408,12 +414,13 @@ namespace Diva.Wifi
             String token = (string)e.UserState;
 
             if (e.Cancelled)
-                m_log.DebugFormat("[Wifi]: [{0}] Send cancelled.", token);
-
-            if (e.Error != null)
-                m_log.DebugFormat("[Wifi]: [{0}] {1}", token, e.Error.ToString());
+                m_log.WarnFormat("[Wifi]: Sending mail to {0} was cancelled.", token);
+            else if (e.Error != null)
+                m_log.WarnFormat("[Wifi]: Exception on sending mail to {0}: {1}", token, e.Error);
             else
-                m_log.DebugFormat("[Wifi]: Message sent to " + token + ".");
+                m_log.DebugFormat("[Wifi]: Message sent to {0}.", token);
+
+            ((SmtpClient)sender).Dispose();
 
         }
 

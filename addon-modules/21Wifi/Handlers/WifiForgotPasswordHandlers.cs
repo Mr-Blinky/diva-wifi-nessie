@@ -108,11 +108,17 @@ namespace Diva.Wifi
                 string email = String.Empty;
                 if (request.ContainsKey("email"))
                     email = request["email"].ToString();
+                string firstName = String.Empty;
+                if (request.ContainsKey("firstname"))
+                    firstName = request["firstname"].ToString();
+                string lastName = String.Empty;
+                if (request.ContainsKey("lastname"))
+                    lastName = request["lastname"].ToString();
 
                 Request req = RequestFactory.CreateRequest(string.Empty, httpRequest, Localization.GetLanguageInfo(httpRequest.Headers.Get("accept-language")));
                 Environment env = new Environment(req);
 
-                string result = m_WebApp.Services.ForgotPasswordPostRequest(env, email);
+                string result = m_WebApp.Services.ForgotPasswordPostRequest(env, firstName, lastName, email);
 
                 return WebAppUtils.StringToBytes(result);
             }
@@ -150,21 +156,21 @@ namespace Diva.Wifi
             try
             {
                 string[] pars = SplitParams(path);
-                if (pars.Length == 1) // /wifi/recover/token?email=email
+                if (pars.Length == 1) // /wifi/recover/token?uid=uuid
                 {
                     string token = pars[0];
-                    if (httpRequest.Query.ContainsKey("email") && httpRequest.Query["email"] != null)
+                    if (httpRequest.Query.ContainsKey("uid") && httpRequest.Query["uid"] != null)
                     {
-                        string email = HttpUtility.UrlDecode(httpRequest.Query["email"].ToString());
+                        string userID = HttpUtility.UrlDecode(httpRequest.Query["uid"].ToString());
                         Request req = RequestFactory.CreateRequest(string.Empty, httpRequest, Localization.GetLanguageInfo(httpRequest.Headers.Get("accept-language")));
                         Environment env = new Environment(req);
 
-                        string result = m_WebApp.Services.RecoverPasswordGetRequest(env, email, token);
+                        string result = m_WebApp.Services.RecoverPasswordGetRequest(env, userID, token);
 
                         return WebAppUtils.StringToBytes(result);
                     }
                     else
-                        m_Log.DebugFormat("[PASSWORD RECOVER GET HANDLER]: Query part does not contain email variable");
+                        m_Log.DebugFormat("[PASSWORD RECOVER GET HANDLER]: Query part does not contain uid variable");
                 }
                 else
                     m_Log.DebugFormat("[PASSWORD RECOVER GET HANDLER]: Path does not have 1 params, it has {0}", pars.Length);
@@ -208,9 +214,9 @@ namespace Diva.Wifi
                 string token = String.Empty;
                 if (request.ContainsKey("token"))
                     token = request["token"].ToString();
-                string email = String.Empty;
-                if (request.ContainsKey("email"))
-                    email = request["email"].ToString();
+                string userID = String.Empty;
+                if (request.ContainsKey("uid"))
+                    userID = request["uid"].ToString();
 
                 string newPassword = String.Empty;
                 if (request.ContainsKey("newpassword"))
@@ -219,7 +225,7 @@ namespace Diva.Wifi
                 Request req = RequestFactory.CreateRequest(string.Empty, httpRequest, Localization.GetLanguageInfo(httpRequest.Headers.Get("accept-language")));
                 Environment env = new Environment(req);
 
-                string result = m_WebApp.Services.RecoverPasswordPostRequest(env, email, token, newPassword);
+                string result = m_WebApp.Services.RecoverPasswordPostRequest(env, userID, token, newPassword);
                 return WebAppUtils.StringToBytes(result);
             }
             catch (Exception e)
