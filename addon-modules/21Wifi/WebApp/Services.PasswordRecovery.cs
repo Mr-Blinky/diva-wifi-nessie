@@ -65,39 +65,46 @@ namespace Diva.Wifi
             return m_WebApp.ReadFile(env, "index.html");
         }
 
-        public string ForgotPasswordPostRequest(Environment env, string email)
+        public string ForgotPasswordPostRequest(Environment env, string firstName, string lastName, string email)
         {
-            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, email);
+            // Several avatars may share one email address, so identify the avatar by name
+            // and only proceed if the email matches the one registered for it.
+            UserAccount account = null;
+            if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName) && !string.IsNullOrWhiteSpace(email))
+                account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName.Trim(), lastName.Trim());
+            if (account != null && !string.Equals(account.Email?.Trim(), email.Trim(), StringComparison.OrdinalIgnoreCase))
+                account = null;
+
             if (account != null)
             {
                 string token = m_AuthenticationService.GetToken(account.PrincipalID, 60);
                 if (token != string.Empty)
                 {
-                    string url = m_WebApp.WebAddress + "/wifi/recover/" + token + "?email=" + HttpUtility.UrlEncode(email);
+                    string url = m_WebApp.WebAddress + "/wifi/recover/" + token + "?uid=" + account.PrincipalID;
 
                     string message = string.Format("\n{0}\n{1}\n{2}",
                         string.Format(_("Your account is {0} {1}", env), account.FirstName, account.LastName),
                         _("Click here to reset your password:", env),
                         url);
-                    if (SendEMail(email, _("Password Reset", env), message))
-                        NotifyWithoutButton(env, _("Check your email. You must reset your password within 60 minutes.", env));
-                    else
-                        NotifyWithoutButton(env, _("Email could not be sent.", env));
+                    SendEMail(email, _("Password Reset", env), message);
+                    NotifyWithoutButton(env, _("Check your email. You must reset your password within 60 minutes.", env));
 
                     return m_WebApp.ReadFile(env, "index.html");
                 }
             }
 
+            // Same response for unknown accounts to avoid disclosing registered details.
+            NotifyWithoutButton(env, _("Check your email. You must reset your password within 60 minutes.", env));
             return m_WebApp.ReadFile(env, "index.html");
         }
 
 
-        public string RecoverPasswordGetRequest(Environment env, string email, string token)
+        public string RecoverPasswordGetRequest(Environment env, string userID, string token)
         {
             UserAccount account = null;
-            if (IsValidToken(email, token, out account))
+            if (IsValidToken(userID, token, out account))
             {
-                PasswordRecoveryData precovery = new PasswordRecoveryData(email, token);
+                PasswordRecoveryData precovery = new PasswordRecoveryData(account.PrincipalID.ToString(), token);
                 env.Data = new List<object>();
                 env.Data.Add(precovery);
                 env.State = State.RecoveringPassword;
@@ -109,7 +116,7 @@ namespace Diva.Wifi
             }
         }
 
-        public string RecoverPasswordPostRequest(Environment env, string email, string token, string newPassword)
+        public string RecoverPasswordPostRequest(Environment env, string userID, string token, string newPassword)
         {
             if (newPassword == null || newPassword.Length < 3)
             {
@@ -117,28 +124,41 @@ namespace Diva.Wifi
                 return m_WebApp.ReadFile(env, "index.html");
             }
 
-            ResetPassword(email, token, newPassword);
-            NotifyWithoutButton(env, _("Your password has been reset.", env));
+            if (ResetPassword(userID, token, newPassword))
+                NotifyWithoutButton(env, _("Your password has been reset.", env));
+            else
+                NotifyWithoutButton(env, _("Invalid token.", env));
 
             return m_WebApp.ReadFile(env, "index.html");
         }
 
-        private void ResetPassword(string email, string token, string newPassword)
+        private bool ResetPassword(string userID, string token, string newPassword)
         {
-            bool success = false;
             UserAccount account = null;
-            if (IsValidToken(email, token, out account))
-                success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
-        
+            if (!IsValidToken(userID, token, out account))
+            {
+                m_log.WarnFormat("[ForgotPasswordService]: Invalid or expired recovery token for account uuid:{0}.", userID);
+                return false;
+            }
+
+            bool success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
             if (!success)
                 m_log.ErrorFormat("[ForgotPasswordService]: Unable to reset password for account uuid:{0}.", account.PrincipalID);
             else
                 m_log.InfoFormat("[ForgotPasswordService]: Password reset for account uuid:{0}", account.PrincipalID);
+            return success;
         }
 
-        private bool IsValidToken(string email, string token, out UserAccount account)
+        // The recovery link identifies the account by UUID, because an email address
+        // can belong to several avatars.
+        private bool IsValidToken(string userID, string token, out UserAccount account)
         {
-            account = m_UserAccountService.GetUserAccount(UUID.Zero, email);
+            account = null;
+            UUID principalID;
+            if (!UUID.TryParse(userID, out principalID))
+                return false;
+
+            account = m_UserAccountService.GetUserAccount(UUID.Zero, principalID);
             if (account != null)
                 return (m_AuthenticationService.Verify(account.PrincipalID, token, 15));
 
@@ -149,12 +169,12 @@ namespace Diva.Wifi
 
     class PasswordRecoveryData
     {
-        public string Email;
+        public string UserID;
         public string Token;
 
-        public PasswordRecoveryData(string e, string t)
+        public PasswordRecoveryData(string u, string t)
         {
-            Email = e; Token = t;
+            UserID = u; Token = t;
         }
     }
 }
