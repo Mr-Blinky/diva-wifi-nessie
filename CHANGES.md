@@ -21,6 +21,13 @@ The module Prebuild definitions were updated for `net8_0` and legacy framework r
 - `21Wifi/WebApp/WifiScriptFace.cs`: replaced the unavailable `OpenSim.Framework.Util.GetRuntimeInformation()` call with `System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription`. The original `Version` property (`OpenSim.VersionInfo.Version`) and the footer's opt-in display were preserved. Both version and runtime information were subsequently verified in the rendered Nessie WiFi footer; no further code change was needed.
 - `21Wifi/WifiMain.cs`: removed an unused exception variable from a `catch (InvalidOperationException)` clause (warning cleanup; behavior intended unchanged).
 
+
+## Pending validation: avatar-specific password recovery
+
+This branch ports the avatar-name and UUID recovery flow contributed by Robyn Starbrook (original commits `a609512` and `dee0d8c`) without PostgreSQL, SQLite or SMTP transport refactoring. A reset request now requires first name, last name and registered email, and the recovery link identifies the account by UUID. Unknown account details receive the same public confirmation as a matching account. Reset failure no longer falsely reports success. The existing asynchronous SMTP sender remains unchanged; acceptance or delivery is not guaranteed by the confirmation.
+
+**Test deployment:** stop ROBUST; back up any customised pages; delete only the two extracted pages `forgotpasswordform.html` and `recoveringpassword.html` from the active `WifiPages` directory (and any language-specific copies being tested). Restart ROBUST and confirm the new pages were regenerated before testing. If the pages do not regenerate, restore the backups and inspect the resource extraction path. This change has not yet been compiled or runtime-tested on the target deployment. Check shared-email avatars, mismatched email, invalid/expired tokens, successful reset and SMTP delivery. Rate limiting and token replay behaviour require separate verification.
+
 ## Packaging, SMTP configuration and attribution
 
 - `21Wifi/Wifi.ini`: documented generic outgoing SMTP settings and provided placeholder values instead of Gmail sample credentials.
