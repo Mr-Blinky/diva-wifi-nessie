@@ -136,7 +136,7 @@ namespace Diva.Wifi
                 {
                     RegisterRecoveryToken(account.PrincipalID, token);
                     string url = m_WebApp.WebAddress + "/wifi/recover/" + token + "?uid=" + account.PrincipalID;
-                    string message = string.Format("\\n{0}\\n{1}\\n{2}",
+                    string message = string.Format("\n{0}\n{1}\n{2}",
                         string.Format(_("Your account is {0} {1}", env), account.FirstName, account.LastName),
                         _("Click here to reset your password:", env),
                         url);
