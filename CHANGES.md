@@ -28,7 +28,7 @@ This branch ports the avatar-name and UUID recovery flow contributed by Robyn St
 
 **Test deployment:** stop ROBUST; back up any customised pages; delete only the two extracted pages `forgotpasswordform.html` and `recoveringpassword.html` from the active `WifiPages` directory (and any language-specific copies being tested). Restart ROBUST and confirm the new pages were regenerated before testing. If the pages do not regenerate, restore the backups and inspect the resource extraction path. This change has not yet been compiled or runtime-tested on the target deployment. Check shared-email avatars, mismatched email, invalid/expired tokens, successful reset and SMTP delivery. Rate limiting and token replay behaviour require separate verification.
 
-## Pending validation: in-memory single-use recovery tokens
+## In-memory single-use recovery tokens (tested on Nessie/MariaDB)
 
 - WiFi now retains only a SHA-256 hash of the newest recovery token per avatar plus a fixed UTC expiration time **in process memory**. No new database table, schema change, persistent token register or OpenSimulator core modification is required.
 - Only the newest link for an avatar is accepted. Links expire **60 minutes after issuance**; opening a link does not extend WiFi's deadline.
@@ -36,7 +36,7 @@ This branch ports the avatar-name and UUID recovery flow contributed by Robyn St
 - **All outstanding WiFi recovery links are invalidated when ROBUST restarts.** This includes links issued by older WiFi builds after deploying the in-memory implementation. Users must simply request a fresh email.
 - The previous file-based test build created `WifiPasswordRecoveryTokens.json` in the test ROBUST executable directory. The new build **does not read or write this file**. Stop ROBUST and securely delete the leftover JSON file once the new DLL is deployed; do not delete unrelated files.
 - This memory-only approach assumes one WiFi/ROBUST process handles recovery requests. Load-balanced or separate WiFi processes do not share tokens and require a coordinated implementation.
-- **Not yet compiled or runtime-tested:** new recovery email, single-use rejection, old-link invalidation on a newer request, 60-minute expiration and invalidation across restart. No HTML page replacement is required for this code-only change.
+- **Verified in test ROBUST (22 November 2026):** clean .NET 8 build (0 warnings, 0 errors), recovery email delivery, successful password reset, rejection of a previously used link, invalidation of an unused link after ROBUST restart, and rejection of an older email A after a newer recovery email B was requested for the same avatar. Previously, the avatar-name/UUID flow and two separate avatars sharing one registered email were also tested successfully.\n- **Still pending verification:** using newer email B to complete a reset in that same two-request test, and live testing of the 60-minute expiry (the fixed expiry check is present in code). No HTML page replacement is required for this code-only change.
 
 ## Packaging, SMTP configuration and attribution
 
