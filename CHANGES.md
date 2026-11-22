@@ -28,6 +28,15 @@ This branch ports the avatar-name and UUID recovery flow contributed by Robyn St
 
 **Test deployment:** stop ROBUST; back up any customised pages; delete only the two extracted pages `forgotpasswordform.html` and `recoveringpassword.html` from the active `WifiPages` directory (and any language-specific copies being tested). Restart ROBUST and confirm the new pages were regenerated before testing. If the pages do not regenerate, restore the backups and inspect the resource extraction path. This change has not yet been compiled or runtime-tested on the target deployment. Check shared-email avatars, mismatched email, invalid/expired tokens, successful reset and SMTP delivery. Rate limiting and token replay behaviour require separate verification.
 
+## Pending validation: single-use password recovery tokens
+
+- A recovery request registers a SHA-256 digest of its token plus an absolute UTC expiry in `WifiPasswordRecoveryTokens.json`, beside the ROBUST executable, **not** in the served `WifiPages` directory. This requires write access to the ROBUST executable directory; no OpenSimulator core changes or database schema changes are needed.
+- Only the newest recovery link per avatar is accepted; requesting another link invalidates any older WiFi recovery links for that avatar. A link expires 60 minutes after issuance regardless of subsequent visits.
+- On successful verification of a reset request, WiFi first permanently removes the token from the on-disk store, then changes the password and releases its OpenSimulator authentication token. If the file cannot be saved, the password is **not** changed. A failed password update consumes the token and requires requesting a new link.
+- The file survives ROBUST restarts. Back it up and protect it like application state, and **never expose it via HTTP**. A missing file on first installation starts an empty store; if an existing store is unreadable or corrupted, recovery fails closed with an error in the ROBUST log. Moving to this version intentionally invalidates recovery emails issued by older builds.
+- This implementation assumes one ROBUST process owns the local token file. Multiple independent WiFi/ROBUST processes sharing recovery traffic require coordinated persistent storage and are not supported by this file-based mechanism.
+- **Not yet compiled or tested by the maintainer**: repeat successful recovery, link replay, older-email invalidation after newer requests, expired links, restart survival and missing/corrupted/unwritable-file failure behaviour. The old WiFi pages need not be deleted again for this code-only change.
+
 ## Packaging, SMTP configuration and attribution
 
 - `21Wifi/Wifi.ini`: documented generic outgoing SMTP settings and provided placeholder values instead of Gmail sample credentials.
