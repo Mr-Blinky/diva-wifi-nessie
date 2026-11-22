@@ -28,14 +28,15 @@ This branch ports the avatar-name and UUID recovery flow contributed by Robyn St
 
 **Test deployment:** stop ROBUST; back up any customised pages; delete only the two extracted pages `forgotpasswordform.html` and `recoveringpassword.html` from the active `WifiPages` directory (and any language-specific copies being tested). Restart ROBUST and confirm the new pages were regenerated before testing. If the pages do not regenerate, restore the backups and inspect the resource extraction path. This change has not yet been compiled or runtime-tested on the target deployment. Check shared-email avatars, mismatched email, invalid/expired tokens, successful reset and SMTP delivery. Rate limiting and token replay behaviour require separate verification.
 
-## Pending validation: single-use password recovery tokens
+## Pending validation: in-memory single-use recovery tokens
 
-- A recovery request registers a SHA-256 digest of its token plus an absolute UTC expiry in `WifiPasswordRecoveryTokens.json`, beside the ROBUST executable, **not** in the served `WifiPages` directory. This requires write access to the ROBUST executable directory; no OpenSimulator core changes or database schema changes are needed.
-- Only the newest recovery link per avatar is accepted; requesting another link invalidates any older WiFi recovery links for that avatar. A link expires 60 minutes after issuance regardless of subsequent visits.
-- On successful verification of a reset request, WiFi first permanently removes the token from the on-disk store, then changes the password and releases its OpenSimulator authentication token. If the file cannot be saved, the password is **not** changed. A failed password update consumes the token and requires requesting a new link.
-- The file survives ROBUST restarts. Back it up and protect it like application state, and **never expose it via HTTP**. A missing file on first installation starts an empty store; if an existing store is unreadable or corrupted, recovery fails closed with an error in the ROBUST log. Moving to this version intentionally invalidates recovery emails issued by older builds.
-- This implementation assumes one ROBUST process owns the local token file. Multiple independent WiFi/ROBUST processes sharing recovery traffic require coordinated persistent storage and are not supported by this file-based mechanism.
-- **Not yet compiled or tested by the maintainer**: repeat successful recovery, link replay, older-email invalidation after newer requests, expired links, restart survival and missing/corrupted/unwritable-file failure behaviour. The old WiFi pages need not be deleted again for this code-only change.
+- WiFi now retains only a SHA-256 hash of the newest recovery token per avatar plus a fixed UTC expiration time **in process memory**. No new database table, schema change, persistent token register or OpenSimulator core modification is required.
+- Only the newest link for an avatar is accepted. Links expire **60 minutes after issuance**; opening a link does not extend WiFi's deadline.
+- A valid reset consumes the WiFi token before attempting the password change. Reset attempts are serialized under a lock. On success WiFi also releases the underlying OpenSimulator authentication token. If the password update fails, users must request a new link.
+- **All outstanding WiFi recovery links are invalidated when ROBUST restarts.** This includes links issued by older WiFi builds after deploying the in-memory implementation. Users must simply request a fresh email.
+- The previous file-based test build created `WifiPasswordRecoveryTokens.json` in the test ROBUST executable directory. The new build **does not read or write this file**. Stop ROBUST and securely delete the leftover JSON file once the new DLL is deployed; do not delete unrelated files.
+- This memory-only approach assumes one WiFi/ROBUST process handles recovery requests. Load-balanced or separate WiFi processes do not share tokens and require a coordinated implementation.
+- **Not yet compiled or runtime-tested:** new recovery email, single-use rejection, old-link invalidation on a newer request, 60-minute expiration and invalidation across restart. No HTML page replacement is required for this code-only change.
 
 ## Packaging, SMTP configuration and attribution
 
