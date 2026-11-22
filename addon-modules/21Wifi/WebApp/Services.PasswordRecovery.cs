@@ -33,7 +33,6 @@ using System.Net;
 using System.Net.Mail;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -68,134 +67,57 @@ namespace Diva.Wifi
         }
 
 
-        // This file lives beside ROBUST's executable, outside WiFi's served web pages.
-        // Tokens are stored as SHA-256 digests; only the latest reset link per avatar
-        // is accepted. An unreadable/corrupt store fails closed, never silently resets.
+        // WiFi keeps only the most recent recovery token for each avatar in memory.
+        // A ROBUST restart deliberately invalidates all outstanding recovery links.
         private static readonly object s_RecoveryLock = new object();
-        private static readonly string s_RecoveryStorePath =
-            Path.Combine(AppContext.BaseDirectory, "WifiPasswordRecoveryTokens.json");
+        private static readonly Dictionary<UUID, RecoveryTokenRecord> s_RecoveryTokens =
+            new Dictionary<UUID, RecoveryTokenRecord>();
 
         private sealed class RecoveryTokenRecord
         {
-            public RecoveryTokenRecord() { }
-
-            public string TokenHash { get; set; }
-            public DateTimeOffset ExpiresUtc { get; set; }
+            public byte[] TokenHash;
+            public DateTimeOffset ExpiresUtc;
         }
 
-        private static Dictionary<string, RecoveryTokenRecord> s_RecoveryTokens;
-        private static bool s_RecoveryStoreFailed;
-
-        private static string RecoveryHash(string token)
+        // Caller holds s_RecoveryLock.
+        private static void RemoveExpiredRecoveryTokens()
         {
-            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            List<UUID> expired = new List<UUID>();
+            foreach (KeyValuePair<UUID, RecoveryTokenRecord> pair in s_RecoveryTokens)
+            {
+                if (pair.Value.ExpiresUtc <= now)
+                    expired.Add(pair.Key);
+            }
+            foreach (UUID id in expired)
+                s_RecoveryTokens.Remove(id);
         }
 
-        private static bool IsValidRecoveryHash(string hash)
-        {
-            foreach (char c in hash)
-            {
-                if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')))
-                    return false;
-            }
-            return true;
-        }
-
-        // Caller must hold s_RecoveryLock.
-        private static bool LoadRecoveryTokens()
-        {
-            if (s_RecoveryStoreFailed)
-                return false;
-            if (s_RecoveryTokens != null)
-                return true;
-
-            try
-            {
-                if (!File.Exists(s_RecoveryStorePath))
-                {
-                    s_RecoveryTokens = new Dictionary<string, RecoveryTokenRecord>();
-                    return true;
-                }
-
-                string json = File.ReadAllText(s_RecoveryStorePath);
-                s_RecoveryTokens = JsonSerializer.Deserialize<Dictionary<string, RecoveryTokenRecord>>(json);
-                if (s_RecoveryTokens == null)
-                    throw new InvalidDataException("Password recovery token store is empty or invalid");
-
-                foreach (RecoveryTokenRecord record in s_RecoveryTokens.Values)
-                {
-                    if (record == null || record.TokenHash == null || record.TokenHash.Length != 64 || !IsValidRecoveryHash(record.TokenHash))
-                        throw new InvalidDataException("Password recovery token store contains an invalid record");
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                s_RecoveryStoreFailed = true;
-                m_log.Error("[Wifi]: Password recovery token store is unavailable; recovery disabled until corrected and ROBUST restarted.", e);
-                return false;
-            }
-        }
-
-        // Caller must hold s_RecoveryLock. Atomic replacement protects against
-        // a partially written JSON file on process interruption.
-        private static bool SaveRecoveryTokens()
-        {
-            string temporaryPath = s_RecoveryStorePath + ".tmp";
-            try
-            {
-                string json = JsonSerializer.Serialize(s_RecoveryTokens);
-                File.WriteAllText(temporaryPath, json);
-                File.Move(temporaryPath, s_RecoveryStorePath, true);
-                return true;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[Wifi]: Unable to persist password recovery token store.", e);
-                return false;
-            }
-        }
-
-        private bool RegisterRecoveryToken(UUID principalID, string token)
+        private void RegisterRecoveryToken(UUID principalID, string token)
         {
             lock (s_RecoveryLock)
             {
-                if (!LoadRecoveryTokens())
-                    return false;
-
-                string key = principalID.ToString();
-                bool hadPrevious = s_RecoveryTokens.TryGetValue(key, out RecoveryTokenRecord previous);
-                s_RecoveryTokens[key] = new RecoveryTokenRecord
+                RemoveExpiredRecoveryTokens();
+                s_RecoveryTokens[principalID] = new RecoveryTokenRecord
                 {
-                    TokenHash = RecoveryHash(token),
+                    TokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(token)),
                     ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60)
                 };
-
-                if (SaveRecoveryTokens())
-                    return true;
-
-                if (hadPrevious)
-                    s_RecoveryTokens[key] = previous;
-                else
-                    s_RecoveryTokens.Remove(key);
-                return false;
             }
         }
 
-        // Caller must hold s_RecoveryLock.
+        // Caller holds s_RecoveryLock.
         private bool IsCurrentRecoveryToken(UUID principalID, string token)
         {
-            if (string.IsNullOrEmpty(token) || token.Length > 128 || !LoadRecoveryTokens())
+            if (string.IsNullOrEmpty(token) || token.Length > 128)
                 return false;
 
-            if (!s_RecoveryTokens.TryGetValue(principalID.ToString(), out RecoveryTokenRecord entry)
+            if (!s_RecoveryTokens.TryGetValue(principalID, out RecoveryTokenRecord entry)
                 || entry.ExpiresUtc <= DateTimeOffset.UtcNow)
                 return false;
 
-            // Compare digests in constant time. No plaintext tokens are on disk.
             return CryptographicOperations.FixedTimeEquals(
-                Convert.FromHexString(entry.TokenHash),
+                entry.TokenHash,
                 SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         }
 
@@ -212,19 +134,13 @@ namespace Diva.Wifi
                 string token = m_AuthenticationService.GetToken(account.PrincipalID, 60);
                 if (!string.IsNullOrEmpty(token))
                 {
-                    if (RegisterRecoveryToken(account.PrincipalID, token))
-                    {
-                        string url = m_WebApp.WebAddress + "/wifi/recover/" + token + "?uid=" + account.PrincipalID;
-                        string message = string.Format("\n{0}\n{1}\n{2}",
-                            string.Format(_("Your account is {0} {1}", env), account.FirstName, account.LastName),
-                            _("Click here to reset your password:", env),
-                            url);
-                        SendEMail(email.Trim(), _("Password Reset", env), message);
-                    }
-                    else
-                    {
-                        m_AuthenticationService.Release(account.PrincipalID, token);
-                    }
+                    RegisterRecoveryToken(account.PrincipalID, token);
+                    string url = m_WebApp.WebAddress + "/wifi/recover/" + token + "?uid=" + account.PrincipalID;
+                    string message = string.Format("\\n{0}\\n{1}\\n{2}",
+                        string.Format(_("Your account is {0} {1}", env), account.FirstName, account.LastName),
+                        _("Click here to reset your password:", env),
+                        url);
+                    SendEMail(email.Trim(), _("Password Reset", env), message);
                 }
             }
 
@@ -274,16 +190,9 @@ namespace Diva.Wifi
                     return false;
                 }
 
-                // Persist token consumption BEFORE changing the password.
-                // If persistence fails, no password change is attempted.
-                string key = account.PrincipalID.ToString();
-                RecoveryTokenRecord record = s_RecoveryTokens[key];
-                s_RecoveryTokens.Remove(key);
-                if (!SaveRecoveryTokens())
-                {
-                    s_RecoveryTokens[key] = record;
-                    return false;
-                }
+                // Consume the token under the same lock as validation and reset.
+                // Parallel submissions cannot reuse a successful link.
+                s_RecoveryTokens.Remove(account.PrincipalID);
 
                 bool success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
                 if (!success)
