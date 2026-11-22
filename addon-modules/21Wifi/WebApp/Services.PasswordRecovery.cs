@@ -77,6 +77,8 @@ namespace Diva.Wifi
 
         private sealed class RecoveryTokenRecord
         {
+            public RecoveryTokenRecord() { }
+
             public string TokenHash { get; set; }
             public DateTimeOffset ExpiresUtc { get; set; }
         }
@@ -87,6 +89,16 @@ namespace Diva.Wifi
         private static string RecoveryHash(string token)
         {
             return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+        }
+
+        private static bool IsValidRecoveryHash(string hash)
+        {
+            foreach (char c in hash)
+            {
+                if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')))
+                    return false;
+            }
+            return true;
         }
 
         // Caller must hold s_RecoveryLock.
@@ -112,7 +124,7 @@ namespace Diva.Wifi
 
                 foreach (RecoveryTokenRecord record in s_RecoveryTokens.Values)
                 {
-                    if (record == null || record.TokenHash == null || record.TokenHash.Length != 64)
+                    if (record == null || record.TokenHash == null || record.TokenHash.Length != 64 || !IsValidRecoveryHash(record.TokenHash))
                         throw new InvalidDataException("Password recovery token store contains an invalid record");
                 }
 
@@ -174,7 +186,7 @@ namespace Diva.Wifi
         // Caller must hold s_RecoveryLock.
         private bool IsCurrentRecoveryToken(UUID principalID, string token)
         {
-            if (string.IsNullOrEmpty(token) || !LoadRecoveryTokens())
+            if (string.IsNullOrEmpty(token) || token.Length > 128 || !LoadRecoveryTokens())
                 return false;
 
             if (!s_RecoveryTokens.TryGetValue(principalID.ToString(), out RecoveryTokenRecord entry)
